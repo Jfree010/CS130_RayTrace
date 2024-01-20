@@ -9,43 +9,37 @@ Shade_Surface(const Ray& ray,const vec3& intersection_point,
     const vec3& normal,int recursion_depth) const
 {
     vec3 color;//Ia + Id + Is
-    vec3 Ia, Id, Is, l, r, cds;
-    vec3 v = -ray.direction;// view vector
-    double n_dot_l, v_dot_r, alpha_power;
+    vec3 Ia, Id, Is, cds;
 
     //calculating ambient color
     Ia = color_ambient * world.ambient_color * world.ambient_intensity;
 
     for(size_t i = 0; i < world.lights.size(); ++i) {
       //check for shadows
-      l = world.lights.at(i)->position - intersection_point; //light direction
-      Hit hit;
-      Ray shadow_ray(intersection_point + (small_t*l.normalized()), (l/l.magnitude()));
-      Object * obj = world.Closest_Intersection(shadow_ray, hit);
-      double l_distance = l.normalized().magnitude();
-      double h_distance = shadow_ray.Point(hit.t).magnitude();
+      vec3 l = world.lights.at(i)->position - intersection_point; //light direction
+      vec3 Lds= world.lights.at(i)->Emitted_Light(l);
+
       bool shadowed = false;
-      if(obj) {
-        if(l_distance > h_distance) {
-          shadowed = true;
-        }
+      Ray shadow_ray(intersection_point ,l);
+
+      Hit hit;
+      Object * obj = world.Closest_Intersection(shadow_ray, hit);
+      double l_distance = l.magnitude();
+      double h_distance = (shadow_ray.Point(hit.t) - intersection_point).magnitude();
+      if(obj and world.enable_shadows) {
+          shadowed = (l_distance > h_distance) ? true : false;
       }
 
       if(!shadowed) {//if light source is closer to intersection, add light
         //calculating diffuse color
-        vec3 Lds= world.lights.at(i)->Emitted_Light(l);
-        n_dot_l = dot(normal.normalized(), l.normalized());
+        double n_dot_l = dot(normal, l.normalized());
         Id = color_diffuse * Lds * std::max(n_dot_l, 0.0);
 
         //calculating specular color
-        r = (2.0 * n_dot_l) * normal.normalized() - l.normalized(); //reflection vector
-        v_dot_r = dot(v.normalized(), r.normalized());
-        if(v_dot_r < 0) {
-          alpha_power = 0;
-        } else {
-          alpha_power = std::pow(v_dot_r, specular_power);
-        }
-        Is = color_specular * Lds * std::max(alpha_power, 0.0);
+        vec3 r = 2.0 * dot(normal, -l) * normal + l;
+        double v_dot_r = dot(ray.direction, r.normalized());
+        double alpha_power = std::max(v_dot_r, 0.0);
+        Is = color_specular * Lds * std::pow(alpha_power, specular_power);
 
         cds += Id + Is;
       }

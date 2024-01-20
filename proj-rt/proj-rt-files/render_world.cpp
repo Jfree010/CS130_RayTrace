@@ -32,7 +32,7 @@ Object* Render_World::Closest_Intersection(const Ray& ray, Hit& hit)
       objects.at(k)->Intersection(ray, hitList);
       if(hitList.size() > 0) { //there is at least 1 intersection
         for(size_t m = 0; m < hitList.size(); ++m) { //find a hit
-          if(hitList.at(m).t > small_t) {//ensure there's a hit
+          if(hitList.at(m).t >= small_t) {//ensure there's a hit
             if(hitList.at(m).t < min_t) {//update hit, obj, and min_t if necessary
               min_t = hitList.at(m).t;
               obj = const_cast<Object*>(hitList.at(m).object);
