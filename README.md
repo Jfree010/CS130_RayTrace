@@ -1,8 +1,8 @@
-## CS130 Ray Trace
+# CS130 Ray Trace
 
 This is a project that generates images and colors them using ray tracing principles. These generated images are compared to the correct images for accuracy. 
 
-# Link to video demonstration
+## Link to video demonstration
 
 https://youtu.be/XuFIu8X5gk4
 
